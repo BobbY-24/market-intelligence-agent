@@ -1,0 +1,13 @@
+http:
+  timeout_seconds: 20
+  max_retries: 3
+  backoff_seconds: 0.75
+  cache_ttl_seconds: 900
+
+market_data:
+  provider: stooq
+  delay_label: delayed_or_provider_dependent
+
+treasury:
+  provider: us_treasury_xml
+  source_url: "https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml"

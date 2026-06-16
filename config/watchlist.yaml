@@ -1,0 +1,85 @@
+assets:
+  - symbol: TSLA
+    name: Tesla
+    asset_type: equity
+    themes: [electric_vehicles, autonomy, artificial_intelligence]
+    priority: high
+  - symbol: AMZN
+    name: Amazon
+    asset_type: equity
+    themes: [cloud, retail, artificial_intelligence]
+    priority: high
+  - symbol: MSFT
+    name: Microsoft
+    asset_type: equity
+    themes: [cloud, software, artificial_intelligence]
+    priority: high
+  - symbol: GOOG
+    name: Alphabet Class C
+    asset_type: equity
+    themes: [advertising, cloud, artificial_intelligence]
+    priority: high
+  - symbol: PLTR
+    name: Palantir
+    asset_type: equity
+    themes: [artificial_intelligence, government, data_platforms]
+    priority: high
+  - symbol: NVDA
+    name: NVIDIA
+    asset_type: equity
+    themes: [artificial_intelligence, semiconductors, data_centers]
+    priority: high
+  - symbol: BX
+    name: Blackstone
+    asset_type: equity
+    themes: [private_equity, credit, real_estate, ipo_markets]
+    priority: medium
+  - symbol: META
+    name: Meta Platforms
+    asset_type: equity
+    themes: [advertising, artificial_intelligence, social_media]
+    priority: high
+  - symbol: SPCX
+    name: SPAC and New Issue ETF
+    asset_type: etf
+    themes: [spacs, ipo_markets, speculative_sentiment]
+    priority: medium
+  - symbol: IAU
+    name: iShares Gold Trust
+    asset_type: etf
+    themes: [gold, real_yields, inflation, dollar]
+    priority: medium
+  - symbol: VOO
+    name: Vanguard S&P 500 ETF
+    asset_type: etf
+    themes: [sp500, broad_equity]
+    priority: high
+  - symbol: AGG
+    name: iShares Core U.S. Aggregate Bond ETF
+    asset_type: etf
+    themes: [bonds, duration, credit, rates]
+    priority: high
+  - symbol: VBTLX
+    name: Vanguard Total Bond Market Index Fund Admiral Shares
+    asset_type: mutual_fund
+    themes: [bonds, duration, credit, rates]
+    priority: high
+    nav_only: true
+  - symbol: SWPPX
+    name: Schwab S&P 500 Index Fund
+    asset_type: mutual_fund
+    themes: [sp500, broad_equity]
+    priority: medium
+    nav_only: true
+  - symbol: TCIEX
+    name: TCIEX - identity to verify
+    asset_type: mutual_fund
+    themes: [to_verify]
+    priority: low
+    nav_only: true
+    requires_identity_verification: true
+
+treasury:
+  enabled: true
+  tenors: [2Y, 5Y, 10Y, 30Y]
+
