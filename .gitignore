@@ -6,6 +6,5 @@ __pycache__/
 *.egg-info/
 data/cache/
 data/*.sqlite3
-reports/*.md
 reports/*.json
 reports/*.html

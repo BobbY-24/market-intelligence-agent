@@ -2,7 +2,6 @@ timezone: America/New_York
 report_time: "07:30"
 weekdays_only: true
 reports_dir: reports
-desktop_markdown_dir: /Users/bobyan/Desktop/Daily Market Intelligence
 data_dir: data
 database_path: data/market_intelligence.sqlite3
 score_thresholds:

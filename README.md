@@ -48,6 +48,8 @@ GitHub Actions cannot express one timezone-aware cron that automatically follows
 
 The workflow then checks the current America/New_York local time and only runs the report when the local hour/minute equals `07:30`.
 
+Scheduled runs upload the `reports/` directory as a workflow artifact and also commit the generated Markdown report back into the repository so the latest dated report is visible in GitHub.
+
 ## Testing
 
 ```bash
@@ -65,4 +67,3 @@ ruff check .
 ## Adding Assets or Providers
 
 Add assets to `config/watchlist.yaml`. Each entry should include `symbol`, `name`, `asset_type`, `themes`, and `priority`. Add new provider implementations under `src/collectors/` by implementing the provider protocols in `src/collectors/interfaces.py`.
-
