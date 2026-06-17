@@ -8,5 +8,5 @@ from src.models import ReportBundle
 
 def render_json(bundle: ReportBundle) -> str:
     data = asdict(bundle)
+    data.pop("price_histories", None)
     return json.dumps(data, default=str, indent=2, sort_keys=True) + "\n"
-

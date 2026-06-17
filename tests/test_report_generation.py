@@ -2,8 +2,8 @@ from datetime import datetime
 from pathlib import Path
 
 from src.config import load_config
-from src.models import Asset, MarketSnapshot, ReportBundle, TreasurySnapshot
 from src.main import write_reports
+from src.models import Asset, MarketSnapshot, PricePoint, ReportBundle, TreasurySnapshot
 from src.reporting.markdown import render_markdown
 from src.storage.sqlite_store import SQLiteStore
 
@@ -22,37 +22,56 @@ def test_markdown_report_contains_required_sections() -> None:
             "test",
         ),
         warnings=[],
+        price_histories={
+            "NVDA": [
+                PricePoint(datetime(2026, 1, 2), 90),
+                PricePoint(datetime(2026, 6, 15), 100),
+            ]
+        },
     )
 
-    markdown = render_markdown(bundle, [Asset("NVDA", "NVIDIA", "equity", ["ai"])])
+    markdown = render_markdown(
+        bundle,
+        [Asset("NVDA", "NVIDIA", "equity", ["ai"])],
+        {"NVDA": "charts/2026-06-16/nvda-ytd.svg"},
+    )
 
     assert "# Daily Market Intelligence Report" in markdown
-    assert "## 10. Bottom line" in markdown
+    assert "## 11. Bottom line" in markdown
     assert "NVDA" in markdown
+    assert "![NVDA YTD chart](charts/2026-06-16/nvda-ytd.svg)" in markdown
 
 
-def test_desktop_markdown_dir_supports_tilde_expansion(tmp_path: Path) -> None:
+def test_reports_dir_defaults_to_workspace_reports(tmp_path: Path) -> None:
     config_dir = tmp_path / "config"
     config_dir.mkdir()
     (config_dir / "watchlist.yaml").write_text("assets: []\ntreasury: {}\n", encoding="utf-8")
     (config_dir / "sources.yaml").write_text("{}", encoding="utf-8")
     (config_dir / "report_settings.yaml").write_text(
-        "desktop_markdown_dir: ~/Desktop\n",
+        "timezone: America/New_York\n",
         encoding="utf-8",
     )
 
     config = load_config(tmp_path)
 
-    assert config.desktop_markdown_dir == Path("~/Desktop").expanduser()
+    assert config.reports_dir == tmp_path / "reports"
 
 
-def test_write_reports_publishes_markdown_to_secondary_dir(tmp_path: Path) -> None:
+def test_write_reports_creates_repo_local_reports_and_charts(tmp_path: Path) -> None:
     config_dir = tmp_path / "config"
     config_dir.mkdir()
-    (config_dir / "watchlist.yaml").write_text("assets: []\ntreasury: {}\n", encoding="utf-8")
+    (config_dir / "watchlist.yaml").write_text(
+        "assets:\n"
+        "  - symbol: NVDA\n"
+        "    name: NVIDIA\n"
+        "    asset_type: equity\n"
+        "    themes: [ai]\n"
+        "treasury: {}\n",
+        encoding="utf-8",
+    )
     (config_dir / "sources.yaml").write_text("{}", encoding="utf-8")
     (config_dir / "report_settings.yaml").write_text(
-        "reports_dir: reports\ndatabase_path: data/test.sqlite3\ndesktop_markdown_dir: desktop\n",
+        "reports_dir: reports\ndatabase_path: data/test.sqlite3\n",
         encoding="utf-8",
     )
 
@@ -65,14 +84,21 @@ def test_write_reports_publishes_markdown_to_secondary_dir(tmp_path: Path) -> No
         ],
         treasury_snapshot=None,
         warnings=[],
+        price_histories={
+            "NVDA": [
+                PricePoint(datetime(2026, 1, 2), 90),
+                PricePoint(datetime(2026, 3, 3), 95),
+                PricePoint(datetime(2026, 6, 15), 100),
+            ]
+        },
     )
 
     markdown_path, json_path = write_reports(config, bundle)
-    desktop_markdown_path = tmp_path / "desktop" / markdown_path.name
+    chart_path = tmp_path / "reports" / "charts" / "2026-06-16" / "nvda-ytd.svg"
 
     assert markdown_path.exists()
     assert json_path.exists()
-    assert desktop_markdown_path.exists()
-    assert desktop_markdown_path.read_text(encoding="utf-8") == markdown_path.read_text(
+    assert chart_path.exists()
+    assert "![NVDA YTD chart](charts/2026-06-16/nvda-ytd.svg)" in markdown_path.read_text(
         encoding="utf-8"
     )

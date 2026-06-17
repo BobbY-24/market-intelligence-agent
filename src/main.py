@@ -5,12 +5,13 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from src.collectors.http import CachedHttpClient
-from src.collectors.market_data import StooqMarketDataProvider
+from src.collectors.market_data import YFinanceMarketDataProvider
 from src.collectors.treasury import USTreasuryProvider
 from src.config import AppConfig, load_config
 from src.logging_config import configure_logging
 from src.models import ReportBundle
 from src.normalization.validation import validate_watchlist
+from src.reporting.charts import write_ytd_charts
 from src.reporting.json_report import render_json
 from src.reporting.markdown import render_markdown, report_filename
 from src.storage.sqlite_store import SQLiteStore
@@ -32,13 +33,17 @@ def collect(config: AppConfig) -> ReportBundle:
     store = SQLiteStore(config.database_path)
     store.initialize()
     http = build_http(config)
-    market_provider = StooqMarketDataProvider(http)
+    market_provider = YFinanceMarketDataProvider(
+        delay_label=str(config.sources.get("market_data", {}).get("delay_label", "yfinance_daily"))
+    )
     snapshots = []
+    price_histories = {}
     warnings = validate_watchlist(config.watchlist)
     for asset in config.watchlist:
-        snapshot = market_provider.get_snapshot(asset, now)
-        snapshots.append(snapshot)
-        store.save_market_snapshot(snapshot)
+        result = market_provider.collect(asset, now)
+        snapshots.append(result.snapshot)
+        price_histories[asset.symbol] = result.price_history
+        store.save_market_snapshot(result.snapshot)
 
     treasury_snapshot = None
     if config.treasury_enabled:
@@ -49,21 +54,22 @@ def collect(config: AppConfig) -> ReportBundle:
         except Exception as exc:
             warnings.append(f"Treasury collection failed: {exc}")
 
-    return ReportBundle(now, snapshots, treasury_snapshot, warnings)
+    return ReportBundle(now, snapshots, treasury_snapshot, warnings, price_histories)
 
 
 def write_reports(config: AppConfig, bundle: ReportBundle) -> tuple[Path, Path]:
     config.reports_dir.mkdir(parents=True, exist_ok=True)
     markdown_path = config.reports_dir / report_filename(bundle.generated_at, "md")
     json_path = config.reports_dir / report_filename(bundle.generated_at, "json")
-    markdown = render_markdown(bundle, config.watchlist)
+    chart_paths = write_ytd_charts(
+        bundle.generated_at,
+        config.watchlist,
+        bundle.price_histories,
+        config.reports_dir,
+    )
+    markdown = render_markdown(bundle, config.watchlist, chart_paths)
     markdown_path.write_text(markdown, encoding="utf-8")
     json_path.write_text(render_json(bundle), encoding="utf-8")
-
-    if config.desktop_markdown_dir:
-        config.desktop_markdown_dir.mkdir(parents=True, exist_ok=True)
-        desktop_markdown_path = config.desktop_markdown_dir / markdown_path.name
-        desktop_markdown_path.write_text(markdown, encoding="utf-8")
 
     SQLiteStore(config.database_path).save_report_run(
         bundle.generated_at.isoformat(),

@@ -49,10 +49,16 @@ class TreasurySnapshot:
     data_quality: str = "official_daily"
 
 
+@dataclass(frozen=True)
+class PricePoint:
+    date: datetime
+    close: float
+
+
 @dataclass
 class ReportBundle:
     generated_at: datetime
     market_snapshots: list[MarketSnapshot]
     treasury_snapshot: TreasurySnapshot | None
     warnings: list[str]
-
+    price_histories: dict[str, list[PricePoint]] = field(default_factory=dict)

@@ -1,76 +1,95 @@
 from __future__ import annotations
 
-import csv
+from dataclasses import dataclass
 from datetime import datetime
-from io import StringIO
+from math import isnan
 
-from src.collectors.http import CachedHttpClient
-from src.models import Asset, MarketSnapshot
+import yfinance as yf
+
+from src.models import Asset, MarketSnapshot, PricePoint
 
 
-class StooqMarketDataProvider:
-    """Free Stooq CSV-backed market data provider."""
+@dataclass(frozen=True)
+class CollectedMarketData:
+    snapshot: MarketSnapshot
+    price_history: list[PricePoint]
 
-    def __init__(self, http: CachedHttpClient) -> None:
-        self.http = http
 
-    def get_snapshot(self, asset: Asset, as_of: datetime) -> MarketSnapshot:
+class YFinanceMarketDataProvider:
+    """Yahoo Finance backed market data provider."""
+
+    def __init__(self, delay_label: str = "yfinance_daily") -> None:
+        self.delay_label = delay_label
+
+    def collect(self, asset: Asset, as_of: datetime) -> CollectedMarketData:
         try:
-            rows = self._history(asset.symbol)
+            history = yf.Ticker(asset.symbol).history(period="1y", interval="1d", auto_adjust=False)
         except Exception as exc:
-            return MarketSnapshot(
-                symbol=asset.symbol,
-                as_of=as_of,
-                latest_value=None,
-                data_quality=f"missing: {exc}",
-                source="stooq",
+            return CollectedMarketData(
+                snapshot=MarketSnapshot(
+                    symbol=asset.symbol,
+                    as_of=as_of,
+                    latest_value=None,
+                    data_quality=f"missing: {exc}",
+                    source="yfinance",
+                ),
+                price_history=[],
             )
 
-        if not rows:
-            return MarketSnapshot(asset.symbol, as_of, None, data_quality="missing", source="stooq")
-
-        latest = rows[-1]
-        closes = [row["close"] for row in rows if row["close"] is not None]
-        volumes = [row["volume"] for row in rows if row["volume"] is not None]
-        latest_close = latest["close"]
-
-        return MarketSnapshot(
-            symbol=asset.symbol,
-            as_of=latest["date"],
-            latest_value=latest_close,
-            daily_change_pct=_pct_change(closes, 1),
-            five_day_change_pct=_pct_change(closes, 5),
-            one_month_change_pct=_pct_change(closes, 21),
-            ytd_change_pct=_ytd_change(rows),
-            volume=latest["volume"],
-            average_volume=_average(volumes[-20:]),
-            fifty_day_ma=_average(closes[-50:]),
-            two_hundred_day_ma=_average(closes[-200:]),
-            fifty_two_week_high=max(closes[-252:]) if closes else None,
-            fifty_two_week_low=min(closes[-252:]) if closes else None,
-            data_quality="nav_prior_day" if asset.nav_only else "delayed_or_provider_dependent",
-            source="stooq",
-        )
-
-    def _history(self, symbol: str) -> list[dict]:
-        url = f"https://stooq.com/q/d/l/?s={symbol.lower()}.us&i=d"
-        text = self.http.get_text(url)
-        if not text.lstrip().startswith("Date,"):
-            raise ValueError("provider returned non-CSV response")
-        reader = csv.DictReader(StringIO(text))
+        closes = []
+        price_history = []
+        volumes = []
         rows = []
-        for row in reader:
+        for idx, row in history.iterrows():
             close = _float_or_none(row.get("Close"))
             if close is None:
                 continue
-            rows.append(
-                {
-                    "date": datetime.fromisoformat(str(row["Date"])),
-                    "close": close,
-                    "volume": _int_or_none(row.get("Volume")),
-                }
+            point_time = idx.to_pydatetime().replace(tzinfo=None)
+            volume = _int_or_none(row.get("Volume"))
+            rows.append({"date": point_time, "close": close, "volume": volume})
+            closes.append(close)
+            price_history.append(PricePoint(date=point_time, close=close))
+            if volume is not None:
+                volumes.append(volume)
+
+        if not rows:
+            return CollectedMarketData(
+                snapshot=MarketSnapshot(
+                    symbol=asset.symbol,
+                    as_of=as_of,
+                    latest_value=None,
+                    data_quality="missing: provider returned empty history",
+                    source="yfinance",
+                ),
+                price_history=[],
             )
-        return rows
+
+        latest = rows[-1]
+        data_quality = "nav_prior_day" if asset.nav_only else self.delay_label
+        return CollectedMarketData(
+            snapshot=MarketSnapshot(
+                symbol=asset.symbol,
+                as_of=latest["date"],
+                latest_value=latest["close"],
+                daily_change_pct=_pct_change(closes, 1),
+                five_day_change_pct=_pct_change(closes, 5),
+                one_month_change_pct=_pct_change(closes, 21),
+                ytd_change_pct=_ytd_change(rows),
+                volume=latest["volume"],
+                average_volume=_average(volumes[-20:]),
+                fifty_day_ma=_average(closes[-50:]),
+                two_hundred_day_ma=_average(closes[-200:]),
+                fifty_two_week_high=max(closes[-252:]) if closes else None,
+                fifty_two_week_low=min(closes[-252:]) if closes else None,
+                data_quality=data_quality,
+                source="yfinance",
+            ),
+            price_history=_current_year_points(price_history, as_of.year),
+        )
+
+
+def _current_year_points(price_history: list[PricePoint], year: int) -> list[PricePoint]:
+    return [point for point in price_history if point.date.year == year]
 
 
 def _pct_change(values: list[float], periods: int) -> float | None:
@@ -95,15 +114,21 @@ def _average(values: list[float | int]) -> float | None:
     return sum(clean) / len(clean) if clean else None
 
 
-def _float_or_none(value: str | None) -> float | None:
+def _float_or_none(value: object) -> float | None:
     try:
-        return float(value) if value not in (None, "") else None
-    except ValueError:
+        if value in (None, ""):
+            return None
+        numeric = float(value)
+        return None if isnan(numeric) else numeric
+    except (TypeError, ValueError):
         return None
 
 
-def _int_or_none(value: str | None) -> int | None:
+def _int_or_none(value: object) -> int | None:
     try:
-        return int(float(value)) if value not in (None, "") else None
-    except ValueError:
+        if value in (None, ""):
+            return None
+        numeric = float(value)
+        return None if isnan(numeric) else int(numeric)
+    except (TypeError, ValueError):
         return None

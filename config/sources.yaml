@@ -5,8 +5,8 @@ http:
   cache_ttl_seconds: 900
 
 market_data:
-  provider: stooq
-  delay_label: delayed_or_provider_dependent
+  provider: yfinance
+  delay_label: yfinance_daily
 
 treasury:
   provider: us_treasury_xml

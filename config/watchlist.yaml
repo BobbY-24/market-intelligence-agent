@@ -39,6 +39,11 @@ assets:
     asset_type: equity
     themes: [advertising, artificial_intelligence, social_media]
     priority: high
+  - symbol: BTIC
+    name: BTIC
+    asset_type: equity
+    themes: [bitcoin, digital_assets, speculative_sentiment]
+    priority: medium
   - symbol: SPCX
     name: SPAC and New Issue ETF
     asset_type: etf
@@ -82,4 +87,3 @@ assets:
 treasury:
   enabled: true
   tenors: [2Y, 5Y, 10Y, 30Y]
-

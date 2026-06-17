@@ -35,14 +35,6 @@ class AppConfig:
     def reports_dir(self) -> Path:
         return self.root / self.report_settings.get("reports_dir", "reports")
 
-    @property
-    def desktop_markdown_dir(self) -> Path | None:
-        raw_path = self.report_settings.get("desktop_markdown_dir")
-        if not raw_path:
-            return None
-        path = Path(str(raw_path)).expanduser()
-        return path if path.is_absolute() else self.root / path
-
 
 def load_yaml(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as handle:

@@ -1,30 +1,58 @@
 from datetime import datetime
 
-from src.collectors.market_data import StooqMarketDataProvider
+from src.collectors.market_data import YFinanceMarketDataProvider
 from src.models import Asset
 
 
-class FakeHttp:
-    def get_text(self, url: str) -> str:
-        return "\n".join(
-            [
-                "Date,Open,High,Low,Close,Volume",
-                "2026-01-02,10,10,10,10,100",
-                "2026-01-05,11,11,11,11,200",
-                "2026-01-06,12,12,12,12,300",
-                "2026-01-07,13,13,13,13,400",
-                "2026-01-08,14,14,14,14,500",
-                "2026-01-09,15,15,15,15,600",
-            ]
-        )
+class FakeTimestamp:
+    def __init__(self, dt: datetime) -> None:
+        self.dt = dt
+
+    def to_pydatetime(self) -> datetime:
+        return self.dt
 
 
-def test_market_provider_computes_basic_changes() -> None:
-    provider = StooqMarketDataProvider(FakeHttp())  # type: ignore[arg-type]
-    snapshot = provider.get_snapshot(Asset("TEST", "Test", "equity", []), datetime(2026, 1, 9))
+class FakeSeries:
+    def __init__(self, data: dict[str, float | int]) -> None:
+        self.data = data
+
+    def get(self, key: str) -> float | int | None:
+        return self.data.get(key)
+
+
+class FakeHistory:
+    def iterrows(self):
+        rows = [
+            (datetime(2026, 1, 2), {"Close": 10, "Volume": 100}),
+            (datetime(2026, 1, 5), {"Close": 11, "Volume": 200}),
+            (datetime(2026, 1, 6), {"Close": 12, "Volume": 300}),
+            (datetime(2026, 1, 7), {"Close": 13, "Volume": 400}),
+            (datetime(2026, 1, 8), {"Close": 14, "Volume": 500}),
+            (datetime(2026, 1, 9), {"Close": 15, "Volume": 600}),
+        ]
+        for dt, row in rows:
+            yield FakeTimestamp(dt), FakeSeries(row)
+
+
+class FakeTicker:
+    def __init__(self, symbol: str) -> None:
+        self.symbol = symbol
+
+    def history(self, period: str, interval: str, auto_adjust: bool):
+        assert period == "1y"
+        assert interval == "1d"
+        assert auto_adjust is False
+        return FakeHistory()
+
+
+def test_market_provider_computes_basic_changes(monkeypatch) -> None:
+    monkeypatch.setattr("src.collectors.market_data.yf.Ticker", FakeTicker)
+    provider = YFinanceMarketDataProvider()
+    result = provider.collect(Asset("TEST", "Test", "equity", []), datetime(2026, 1, 9))
+    snapshot = result.snapshot
 
     assert snapshot.latest_value == 15
     assert snapshot.daily_change_pct == 7.14285714285714
     assert snapshot.five_day_change_pct == 50
     assert snapshot.volume == 600
-
+    assert len(result.price_history) == 6

@@ -6,8 +6,13 @@ from src.analysis.market_analysis import main_development, treasury_theme
 from src.models import Asset, ReportBundle
 
 
-def render_markdown(bundle: ReportBundle, assets: list[Asset]) -> str:
+def render_markdown(
+    bundle: ReportBundle,
+    assets: list[Asset],
+    chart_paths: dict[str, str] | None = None,
+) -> str:
     asset_by_symbol = {asset.symbol: asset for asset in assets}
+    chart_paths = chart_paths or {}
     lines = [
         "# Daily Market Intelligence Report",
         "",
@@ -55,7 +60,11 @@ def render_markdown(bundle: ReportBundle, assets: list[Asset]) -> str:
     lines.extend(
         [
             "",
-            "## 4. Company-by-company analysis",
+            "## 4. YTD charts",
+            "",
+            _charts_section(assets, chart_paths),
+            "",
+            "## 5. Company-by-company analysis",
             "",
             (
                 "Stage 1 includes company sections only when price or volume anomalies "
@@ -94,7 +103,7 @@ def render_markdown(bundle: ReportBundle, assets: list[Asset]) -> str:
     lines.extend(
         [
             "",
-            "## 5. ETF and mutual-fund analysis",
+            "## 6. ETF and mutual-fund analysis",
             "",
             (
                 "VOO and SWPPX provide overlapping S&P 500 exposure. AGG and VBTLX "
@@ -102,11 +111,11 @@ def render_markdown(bundle: ReportBundle, assets: list[Asset]) -> str:
                 "are labeled as NAV/prior-day when configured as NAV-only."
             ),
             "",
-            "## 6. Treasury and bond-market analysis",
+            "## 7. Treasury and bond-market analysis",
             "",
             _treasury_section(bundle),
             "",
-            "## 7. Cross-asset signals",
+            "## 8. Cross-asset signals",
             "",
             (
                 "Higher long-term Treasury yields can pressure long-duration growth equities, "
@@ -118,18 +127,18 @@ def render_markdown(bundle: ReportBundle, assets: list[Asset]) -> str:
                 "risk appetite."
             ),
             "",
-            "## 8. Upcoming catalysts",
+            "## 9. Upcoming catalysts",
             "",
             (
                 "Stage 1 does not yet collect forward calendars. Stage 3 will add earnings, "
                 "macro releases, Treasury auctions, Fed meetings, and fund distributions."
             ),
             "",
-            "## 9. Risks and anomalies",
+            "## 10. Risks and anomalies",
             "",
             _warnings(bundle),
             "",
-            "## 10. Bottom line",
+            "## 11. Bottom line",
             "",
             _bottom_line(bundle),
         ]
@@ -174,6 +183,33 @@ def _top_developments(bundle: ReportBundle) -> str:
             f"Source: {bundle.treasury_snapshot.source}."
         )
     return "\n".join(lines) if lines else "No developments available from Stage 1 data."
+
+
+def _charts_section(assets: list[Asset], chart_paths: dict[str, str]) -> str:
+    lines = []
+    for asset in assets:
+        if asset.asset_type not in {"equity", "etf"}:
+            continue
+        chart_path = chart_paths.get(asset.symbol)
+        if chart_path:
+            lines.extend(
+                [
+                    f"### {asset.symbol} - {asset.name}",
+                    "",
+                    f"![{asset.symbol} YTD chart]({chart_path})",
+                    "",
+                ]
+            )
+        else:
+            lines.extend(
+                [
+                    f"### {asset.symbol} - {asset.name}",
+                    "",
+                    "YTD chart unavailable because usable price history was not collected.",
+                    "",
+                ]
+            )
+    return "\n".join(lines).rstrip()
 
 
 def _treasury_section(bundle: ReportBundle) -> str:

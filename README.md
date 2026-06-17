@@ -21,12 +21,12 @@ python -m pip install -e ".[dev]"
 
 ## Data Sources
 
-Stage 1 uses free public endpoints where available:
+Stage 1 uses public data sources where available:
 
-- Stooq CSV quotes and historical prices for listed equities and ETFs.
+- Yahoo Finance via `yfinance` for equities, ETFs, and supported mutual funds.
 - U.S. Treasury daily yield curve CSV data for Treasury yields.
 
-Limitations: quote data may be delayed, mutual fund NAVs may be prior-day only, and some symbols may be unavailable from the initial free provider. Missing fields are preserved and labeled in reports instead of failing the whole run.
+Limitations: quote data may be delayed, mutual fund NAVs may be prior-day only, and some symbols may still be unavailable from free market-data coverage. Missing fields are preserved and labeled in reports instead of failing the whole run.
 
 ## CLI Usage
 
@@ -48,7 +48,7 @@ GitHub Actions cannot express one timezone-aware cron that automatically follows
 
 The workflow then checks the current America/New_York local time and only runs the report when the local hour/minute equals `07:30`.
 
-Scheduled runs upload the `reports/` directory as a workflow artifact and also commit the generated Markdown and JSON reports back into the repository so the latest dated run output is visible in GitHub.
+Scheduled runs upload the `reports/` directory as a workflow artifact and also commit the generated Markdown, JSON, and YTD chart assets back into the repository so the latest dated run output is visible in GitHub.
 
 ## Testing
 
