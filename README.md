@@ -48,7 +48,7 @@ GitHub Actions cannot express one timezone-aware cron that automatically follows
 
 The workflow then checks the current America/New_York local time and only runs the report when the local hour/minute equals `07:30`.
 
-Scheduled runs upload the `reports/` directory as a workflow artifact and also commit the generated Markdown report back into the repository so the latest dated report is visible in GitHub.
+Scheduled runs upload the `reports/` directory as a workflow artifact and also commit the generated Markdown and JSON reports back into the repository so the latest dated run output is visible in GitHub.
 
 ## Testing
 
