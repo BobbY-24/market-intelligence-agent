@@ -39,8 +39,8 @@ assets:
     asset_type: equity
     themes: [advertising, artificial_intelligence, social_media]
     priority: high
-  - symbol: BTIC
-    name: BTIC
+  - symbol: IBIT
+    name: iShares Bitcoin Trust ETF
     asset_type: equity
     themes: [bitcoin, digital_assets, speculative_sentiment]
     priority: medium
