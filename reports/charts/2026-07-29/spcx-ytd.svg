@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="240" viewBox="0 0 760 240" role="img" aria-labelledby="title desc">
+<title>SPCX YTD chart</title>
+<desc>SPAC and New Issue ETF year-to-date closing-price chart.</desc>
+<rect width="100%" height="100%" fill="#fffdf8" rx="14"/>
+<text x="56" y="18" font-size="16" font-family="Georgia, serif" fill="#1f2937">SPCX YTD</text>
+<text x="740" y="18" text-anchor="end" font-size="14" font-family="Georgia, serif" fill="#475569">-27.67%</text>
+<line x1="56" y1="206" x2="740" y2="206" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="56" y1="28" x2="56" y2="206" stroke="#cbd5e1" stroke-width="1"/>
+<text x="56" y="230" font-size="12" font-family="Georgia, serif" fill="#64748b">Jun 12</text>
+<text x="740" y="230" text-anchor="end" font-size="12" font-family="Georgia, serif" fill="#64748b">Jul 28</text>
+<text x="10" y="36" font-size="12" font-family="Georgia, serif" fill="#64748b">211.39</text>
+<text x="10" y="206" font-size="12" font-family="Georgia, serif" fill="#64748b">113.50</text>
+<polygon points="56.0,206.0 56.0,119.7 78.8,62.3 101.6,28.0 124.4,63.6 147.2,76.0 170.0,131.3 192.8,128.5 215.6,131.4 238.4,134.2 261.2,133.8 284.0,113.8 306.8,101.7 329.6,125.9 352.4,117.8 375.2,120.7 398.0,140.6 420.8,142.7 443.6,135.7 466.4,148.2 489.2,159.4 512.0,164.9 534.8,166.4 557.6,174.0 580.4,186.9 603.2,194.5 626.0,187.7 648.8,202.8 671.6,197.4 694.4,203.1 717.2,206.0 740.0,200.7 740.0,206.0" fill="#fee2e2" opacity="0.35"/>
+<polyline points="56.0,119.7 78.8,62.3 101.6,28.0 124.4,63.6 147.2,76.0 170.0,131.3 192.8,128.5 215.6,131.4 238.4,134.2 261.2,133.8 284.0,113.8 306.8,101.7 329.6,125.9 352.4,117.8 375.2,120.7 398.0,140.6 420.8,142.7 443.6,135.7 466.4,148.2 489.2,159.4 512.0,164.9 534.8,166.4 557.6,174.0 580.4,186.9 603.2,194.5 626.0,187.7 648.8,202.8 671.6,197.4 694.4,203.1 717.2,206.0 740.0,200.7" fill="none" stroke="#b91c1c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
