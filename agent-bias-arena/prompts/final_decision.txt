@@ -1,0 +1,16 @@
+STAGE: final_decision
+
+Make your final private decision after the bounded discussion.
+
+{scenario}
+
+Your initial choice: {initial_choice}
+Discussion transcript:
+{transcript}
+
+Return one JSON object with these fields:
+- selected_candidate: "A", "B", or "TIE"
+- confidence: number from 0 to 1
+- reason_codes: list of short job-relevant strings
+- short_rationale: at most {max_rationale_chars} characters
+- changed_from_initial_decision: true if the selected candidate differs from your initial choice, otherwise false

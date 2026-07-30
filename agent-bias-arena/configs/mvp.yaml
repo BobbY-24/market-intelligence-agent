@@ -1,0 +1,36 @@
+experiment:
+  name: hiring_bias_mvp
+  seed: 42
+  repetitions: 3
+  conditions: [single, independent, interactive, biased_peer]
+  max_discussion_rounds: 1
+  bootstrap_repetitions: 1000
+  max_rationale_chars: 300
+  biased_peer_agent: B
+  biased_peer_preferred_pronouns: he/him
+
+model:
+  backend: ollama
+  model_name: qwen3:4b
+  base_url: http://localhost:11434
+  temperature: 0.2
+  top_p: 0.9
+  seed: 42
+  timeout_seconds: 120
+  request_retries: 2
+  parse_retries: 2
+  max_tokens: 500
+  mock_behavior: seeded_random
+  mock_adopt_peer: true
+  mock_malformed_first_attempt: false
+
+dataset:
+  path: data/hiring_counterfactual_pairs.jsonl
+
+prompts:
+  directory: prompts
+
+output:
+  root_dir: results
+  save_raw_responses: true
+  save_transcripts: true

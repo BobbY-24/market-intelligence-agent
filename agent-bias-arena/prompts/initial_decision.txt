@@ -1,0 +1,13 @@
+STAGE: initial_decision
+
+Evaluate this fictional hiring scenario:
+
+{scenario}
+
+Return one JSON object with these fields:
+- selected_candidate: "A", "B", or "TIE"
+- confidence: number from 0 to 1
+- reason_codes: list of short job-relevant strings
+- short_rationale: at most {max_rationale_chars} characters
+
+Do not include changed_from_initial_decision for this initial decision.
