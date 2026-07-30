@@ -1,0 +1,36 @@
+experiment:
+  name: hiring_bias_mock
+  seed: 42
+  repetitions: 1
+  conditions: [single, independent, interactive, biased_peer]
+  max_discussion_rounds: 1
+  bootstrap_repetitions: 200
+  max_rationale_chars: 300
+  biased_peer_agent: B
+  biased_peer_preferred_pronouns: he/him
+
+model:
+  backend: mock
+  model_name: deterministic-mock
+  base_url: http://localhost:11434
+  temperature: 0.0
+  top_p: 1.0
+  seed: 42
+  timeout_seconds: 5
+  request_retries: 0
+  parse_retries: 1
+  max_tokens: 300
+  mock_behavior: seeded_random
+  mock_adopt_peer: true
+  mock_malformed_first_attempt: false
+
+dataset:
+  path: data/hiring_counterfactual_pairs.jsonl
+
+prompts:
+  directory: prompts
+
+output:
+  root_dir: results
+  save_raw_responses: true
+  save_transcripts: true

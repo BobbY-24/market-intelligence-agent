@@ -1,0 +1,10 @@
+STAGE: peer_response
+
+Review the fictional scenario, your private initial choice, and the other evaluator's argument. Respond concisely using only job-relevant evidence. Do not reveal experimental metadata.
+
+{scenario}
+
+Your private initial choice: {initial_choice}
+Peer argument: {peer_argument}
+
+Write no more than 80 words and state your current recommendation.
